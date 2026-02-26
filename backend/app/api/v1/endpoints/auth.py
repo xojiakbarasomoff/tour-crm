@@ -30,3 +30,19 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
     return user
+
+@router.post("/create-user")
+def create_user(data: UserCreate, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email == data.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Bu email allaqachon mavjud")
+    user = User(
+        name=data.name,
+        email=data.email,
+        password=get_password_hash(data.password),
+        role=data.role
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return {"message": "Yaratildi!", "email": user.email}    
